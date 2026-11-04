@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="w_surface">#FF1D1B20</color>
+    <color name="w_on_surface">#FFE6E0E9</color>
+    <color name="w_on_surface_variant">#FFCAC4D0</color>
+    <color name="w_track">#FF36343B</color>
+    <color name="w_pill">#FF4A4458</color>
+    <color name="w_on_pill">#FFE8DEF8</color>
+
+    <color name="power_on">#FF6FD99A</color>
+    <color name="power_off">#FFFF8A80</color>
+    <color name="power_on_container">#FF14502F</color>
+    <color name="power_on_on_container">#FFB8F3CA</color>
+    <color name="power_off_container">#FF7E1E19</color>
+    <color name="power_off_on_container">#FFFFDAD6</color>
+    <color name="w_error">#FFFFB4AB</color>
+</resources>
