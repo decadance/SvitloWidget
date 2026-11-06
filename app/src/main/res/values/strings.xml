@@ -32,8 +32,8 @@
     <string name="ch_changes_desc">Tomorrow\'s schedule published or today\'s changed</string>
     <string name="ch_remind">Before an outage</string>
     <string name="ch_remind_desc">A reminder shortly before the power goes off</string>
-    <string name="notif_new_title">New schedule · group %1$s</string>
-    <string name="notif_changed_title">Schedule changed · group %1$s</string>
+    <string name="notif_new_title">New schedule · %1$s</string>
+    <string name="notif_changed_title">Schedule changed · %1$s</string>
     <string name="notif_day_new">%1$s: %2$s</string>
     <string name="notif_day_changed">Updated for %1$s: %2$s</string>
     <string name="day_today">Today</string>
@@ -44,7 +44,7 @@
     <string name="notif_emergency_off_body">%1$s: emergency outages lifted, schedules apply again.</string>
     <string name="remind_title">Power goes off in %1$d min</string>
     <string name="remind_now">Power is going off now</string>
-    <string name="remind_body">Group %1$s: %2$s–%3$s. Charge what you need.</string>
+    <string name="remind_body">%1$s: %2$s–%3$s. Charge what you need.</string>
 
     <string name="app_subtitle">Power outage schedules across Ukraine</string>
     <string name="section_location">Location</string>
@@ -73,5 +73,34 @@
     <string name="footer_updated">Updated: %1$s</string>
     <string name="footer_never">not loaded yet</string>
     <string name="footer_error">Last error: %1$s</string>
-    <string name="footer_source">Data: DTEK, YASNO and regional oblenergos via the open UA-power-outages-monitor project (refreshed every ~5 min). The app checks it every 15 min. During emergency outages schedules don\'t apply.</string>
+    <string name="footer_source">Data: DTEK, YASNO and regional oblenergos via the open UA-power-outages-monitor project (refreshed every ~5 min). The app checks it every 15 min. During emergency outages schedules don\'t apply. Svitlograf is not affiliated with DTEK, YASNO, the oblenergos or Ukrenergo.</string>
+
+    <string name="group_lower">group %1$s</string>
+    <string name="place_group_fmt">%1$s · group %2$s</string>
+    <string name="place_default">Address %1$d</string>
+    <string name="section_addresses">Addresses</string>
+    <string name="add_place">Add address</string>
+    <string name="place_name">Name</string>
+    <string name="place_name_hint">Home, Work, Mum\'s…</string>
+    <string name="place_not_set">Region and group not chosen</string>
+    <string name="delete_place">Delete address</string>
+    <string name="delete_place_confirm">Delete “%1$s”? Its widgets will switch to another address.</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="section_reminders">Reminders</string>
+    <string name="widget_config_title">Which address should this widget show?</string>
+    <string name="widget_config_new">New address</string>
+    <string name="allow_exact">Allow exact reminders</string>
+    <string name="ch_updates">App updates</string>
+    <string name="notif_update_title">Svitlograf %1$s is available</string>
+    <string name="notif_update_body">Tap to update.</string>
+    <string name="update_title">Version %1$s is available</string>
+    <string name="update_install">Update</string>
+    <string name="update_downloading">Downloading… %1$d%%</string>
+    <string name="update_failed">Couldn\'t download the update: %1$s</string>
+    <string name="update_allow">Allow Svitlograf to install updates, then come back here.</string>
+    <string name="check_updates">Check for updates</string>
+    <string name="up_to_date">You have the latest version</string>
+    <string name="footer_version">Version %1$s</string>
+    <string name="privacy_policy">Privacy policy</string>
 </resources>

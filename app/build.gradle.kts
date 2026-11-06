@@ -2,7 +2,6 @@ import java.util.Properties
 
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
 }
 
 // Release signing comes from keystore.properties (not in git). Without it, release falls back to debug signing.
@@ -12,15 +11,36 @@ val signing = Properties().apply {
 
 android {
     namespace = "app.svitlograf"
-    compileSdk = 35
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "app.svitlograf"
         minSdk = 26
-        targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
-        resourceConfigurations += listOf("en", "uk")
+        targetSdk = 37
+        versionCode = 2
+        versionName = "1.1.0"
+    }
+
+    buildFeatures { buildConfig = true }
+
+    flavorDimensions += "dist"
+    productFlavors {
+        // Sideloaded APK with self-updates from the Mac mini.
+        create("github") {
+            dimension = "dist"
+            buildConfigField("String", "UPDATES_URL", "\"https://beta.decadance.me/svitlograf\"")
+            buildConfigField("boolean", "DIRECT_BATTERY_REQUEST", "true")
+        }
+        // Google Play: no self-updates, no restricted permissions.
+        create("play") {
+            dimension = "dist"
+            buildConfigField("String", "UPDATES_URL", "\"\"")
+            buildConfigField("boolean", "DIRECT_BATTERY_REQUEST", "false")
+        }
+    }
+
+    androidResources {
+        localeFilters += listOf("en", "uk")
     }
 
 
@@ -44,21 +64,20 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions { jvmTarget = "17" }
 
     testOptions { unitTests.isIncludeAndroidResources = true }
 }
 
 dependencies {
-    implementation("androidx.work:work-runtime:2.9.1")
+    implementation("androidx.work:work-runtime:2.11.2")
     implementation("androidx.appcompat:appcompat:1.7.1")
     implementation("com.google.android.material:material:1.14.0")
 
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.json:json:20240303")
-    testImplementation("org.robolectric:robolectric:4.14.1")
+    testImplementation("org.robolectric:robolectric:4.17")
     testImplementation("androidx.test:core:1.6.1")
-    testImplementation("androidx.work:work-testing:2.9.1")
+    testImplementation("androidx.work:work-testing:2.11.2")
 }
 
 tasks.withType<Test>().configureEach {

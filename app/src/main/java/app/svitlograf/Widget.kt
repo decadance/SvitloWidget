@@ -17,13 +17,18 @@ import java.time.format.DateTimeFormatter
 
 class Widget : AppWidgetProvider() {
     override fun onUpdate(ctx: Context, mgr: AppWidgetManager, ids: IntArray) {
-        ids.forEach { mgr.updateAppWidget(it, build(ctx, mgr.getAppWidgetOptions(it))) }
+        ids.forEach { update(ctx, mgr, it) }
         Sync.schedulePeriodic(ctx)
         Alarms.reschedule(ctx)
     }
 
     override fun onAppWidgetOptionsChanged(ctx: Context, mgr: AppWidgetManager, id: Int, options: Bundle) {
-        mgr.updateAppWidget(id, build(ctx, options))
+        update(ctx, mgr, id)
+    }
+
+    override fun onDeleted(ctx: Context, ids: IntArray) {
+        val prefs = Prefs(ctx)
+        ids.forEach { prefs.unbindWidget(it) }
     }
 
     override fun onEnabled(ctx: Context) {
@@ -32,41 +37,64 @@ class Widget : AppWidgetProvider() {
     }
 
     override fun onReceive(ctx: Context, intent: Intent) {
-        if (intent.action == ACTION_REFRESH) {
-            Sync.now(ctx)
-            updateAll(ctx)
-            return
+        when (intent.action) {
+            ACTION_REFRESH -> {
+                Sync.now(ctx)
+                updateAll(ctx)
+            }
+            // Result of requestPinAppWidget from the app: bind the new widget to the chosen address.
+            ACTION_PINNED -> {
+                val widgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID)
+                val placeId = intent.getIntExtra(EXTRA_PLACE, -1)
+                if (widgetId != AppWidgetManager.INVALID_APPWIDGET_ID && placeId > 0) {
+                    Prefs(ctx).bindWidget(widgetId, placeId)
+                    update(ctx, AppWidgetManager.getInstance(ctx), widgetId)
+                }
+            }
+            else -> super.onReceive(ctx, intent)
         }
-        super.onReceive(ctx, intent)
     }
 
     companion object {
         const val ACTION_REFRESH = "app.svitlograf.REFRESH"
+        const val ACTION_PINNED = "app.svitlograf.PINNED"
+        const val EXTRA_PLACE = "place"
         private val hm = DateTimeFormatter.ofPattern("HH:mm")
+
+        fun update(ctx: Context, mgr: AppWidgetManager, widgetId: Int) {
+            val place = Prefs(ctx).placeForWidget(widgetId)
+            mgr.updateAppWidget(widgetId, build(ctx, place, mgr.getAppWidgetOptions(widgetId), clickCode = widgetId))
+        }
 
         fun updateAll(ctx: Context) {
             val mgr = AppWidgetManager.getInstance(ctx)
-            mgr.getAppWidgetIds(ComponentName(ctx, Widget::class.java)).forEach {
-                mgr.updateAppWidget(it, build(ctx, mgr.getAppWidgetOptions(it)))
-            }
+            mgr.getAppWidgetIds(ComponentName(ctx, Widget::class.java)).forEach { update(ctx, mgr, it) }
         }
 
         fun build(
             ctx: Context,
+            place: Place?,
             options: Bundle?,
             now: LocalDateTime = LocalDateTime.now(KYIV),
-            region: RegionData? = Store.selected(ctx),
+            region: RegionData? = Store.load(ctx)?.region(place?.region),
             elapsedNow: Long = SystemClock.elapsedRealtime(),
+            clickCode: Int = 0,
         ): RemoteViews {
             val prefs = Prefs(ctx)
-            val group = prefs.group
+            val group = place?.group
             val configured = region != null && group != null
             val snap = Snapshot.build(region, group, now)
             val v = RemoteViews(ctx.packageName, R.layout.widget)
             val density = ctx.resources.displayMetrics.density
 
-            // Header
-            val title = if (group != null) ctx.getString(R.string.group_fmt, group) else ctx.getString(R.string.app_name)
+            // Header: with several addresses the widget says which one it shows.
+            val multi = prefs.places.size > 1
+            val title = when {
+                place != null && multi && group != null -> ctx.getString(R.string.place_group_fmt, place.displayName(ctx), group)
+                place != null && multi -> place.displayName(ctx)
+                group != null -> ctx.getString(R.string.group_fmt, group)
+                else -> ctx.getString(R.string.app_name)
+            }
             val fetched = prefs.fetchedAt
             val subtitle = if (fetched == 0L) title else {
                 val t = LocalDateTime.ofInstant(Instant.ofEpochMilli(fetched), KYIV).format(hm)
@@ -155,9 +183,12 @@ class Widget : AppWidgetProvider() {
             v.setTextViewText(R.id.intervals, lines.joinToString("\n"))
             v.setViewVisibility(R.id.intervals, if (lines.isEmpty() || !tall || !configured) View.GONE else View.VISIBLE)
 
+            val open = Intent(ctx, MainActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                .apply { place?.let { putExtra(MainActivity.EXTRA_PLACE, it.id) } }
             v.setOnClickPendingIntent(
                 R.id.root,
-                PendingIntent.getActivity(ctx, 0, Intent(ctx, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT),
+                PendingIntent.getActivity(ctx, clickCode, open, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT),
             )
             v.setOnClickPendingIntent(
                 R.id.refresh,

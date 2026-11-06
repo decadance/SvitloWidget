@@ -8,6 +8,8 @@
     android:targetCellHeight="3"
     android:resizeMode="horizontal|vertical"
     android:updatePeriodMillis="1800000"
+    android:configure="app.svitlograf.WidgetConfigActivity"
+    android:widgetFeatures="reconfigurable"
     android:initialLayout="@layout/widget"
     android:previewLayout="@layout/widget"
     android:description="@string/widget_desc"

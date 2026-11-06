@@ -32,8 +32,8 @@
     <string name="ch_changes_desc">Вийшов графік на завтра або змінився сьогоднішній</string>
     <string name="ch_remind">Перед відключенням</string>
     <string name="ch_remind_desc">Нагадування незадовго до вимкнення світла</string>
-    <string name="notif_new_title">Новий графік · черга %1$s</string>
-    <string name="notif_changed_title">Графік змінився · черга %1$s</string>
+    <string name="notif_new_title">Новий графік · %1$s</string>
+    <string name="notif_changed_title">Графік змінився · %1$s</string>
     <string name="notif_day_new">%1$s: %2$s</string>
     <string name="notif_day_changed">Оновлено на %1$s: %2$s</string>
     <string name="day_today">Сьогодні</string>
@@ -44,7 +44,7 @@
     <string name="notif_emergency_off_body">%1$s: екстрені відключення скасовано, працюють графіки.</string>
     <string name="remind_title">Світло вимкнуть через %1$d хв</string>
     <string name="remind_now">Світло вимикають зараз</string>
-    <string name="remind_body">Черга %1$s: %2$s–%3$s. Зарядіть усе потрібне.</string>
+    <string name="remind_body">%1$s: %2$s–%3$s. Зарядіть усе потрібне.</string>
 
     <string name="app_subtitle">Графіки відключень світла по всій Україні</string>
     <string name="section_location">Розташування</string>
@@ -73,5 +73,34 @@
     <string name="footer_updated">Оновлено: %1$s</string>
     <string name="footer_never">ще не завантажено</string>
     <string name="footer_error">Остання помилка: %1$s</string>
-    <string name="footer_source">Дані: ДТЕК, YASNO та обленерго через відкритий проєкт UA-power-outages-monitor (оновлюється кожні ~5 хв). Застосунок перевіряє його раз на 15 хв. Під час екстрених відключень графіки не діють.</string>
+    <string name="footer_source">Дані: ДТЕК, YASNO та обленерго через відкритий проєкт UA-power-outages-monitor (оновлюється кожні ~5 хв). Застосунок перевіряє його раз на 15 хв. Під час екстрених відключень графіки не діють. Світлограф не пов\'язаний із ДТЕК, YASNO, обленерго чи Укренерго.</string>
+
+    <string name="group_lower">черга %1$s</string>
+    <string name="place_group_fmt">%1$s · черга %2$s</string>
+    <string name="place_default">Адреса %1$d</string>
+    <string name="section_addresses">Адреси</string>
+    <string name="add_place">Додати адресу</string>
+    <string name="place_name">Назва</string>
+    <string name="place_name_hint">Дім, Робота, Мама…</string>
+    <string name="place_not_set">Регіон і чергу не обрано</string>
+    <string name="delete_place">Видалити адресу</string>
+    <string name="delete_place_confirm">Видалити «%1$s»? Її віджети перемкнуться на іншу адресу.</string>
+    <string name="cancel">Скасувати</string>
+    <string name="delete">Видалити</string>
+    <string name="section_reminders">Нагадування</string>
+    <string name="widget_config_title">Яку адресу показувати у віджеті?</string>
+    <string name="widget_config_new">Нова адреса</string>
+    <string name="allow_exact">Дозволити точні нагадування</string>
+    <string name="ch_updates">Оновлення застосунку</string>
+    <string name="notif_update_title">Доступний Світлограф %1$s</string>
+    <string name="notif_update_body">Натисніть, щоб оновити.</string>
+    <string name="update_title">Доступна версія %1$s</string>
+    <string name="update_install">Оновити</string>
+    <string name="update_downloading">Завантаження… %1$d%%</string>
+    <string name="update_failed">Не вдалося завантажити оновлення: %1$s</string>
+    <string name="update_allow">Дозвольте Світлографу встановлювати оновлення й поверніться сюди.</string>
+    <string name="check_updates">Перевірити оновлення</string>
+    <string name="up_to_date">У вас остання версія</string>
+    <string name="footer_version">Версія %1$s</string>
+    <string name="privacy_policy">Політика конфіденційності</string>
 </resources>

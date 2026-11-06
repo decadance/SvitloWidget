@@ -33,7 +33,10 @@ class RenderTest {
 
     @Before fun setup() {
         File(ctx.filesDir, "feed.json").writeText(json)
-        Prefs(ctx).apply { region = "odeska-oblast"; group = "2.1"; fetchedAt = System.currentTimeMillis() - 3 * 60_000 }
+        Prefs(ctx).apply {
+            updatePlace(places.first().copy(region = "odeska-oblast", group = "2.1"))
+            fetchedAt = System.currentTimeMillis() - 3 * 60_000
+        }
     }
 
     private fun save(view: View, wPx: Int, hPx: Int, name: String, wallpaper: Int) {
@@ -48,13 +51,13 @@ class RenderTest {
         File(out, "$name.png").outputStream().use { bmp.compress(Bitmap.CompressFormat.PNG, 100, it) }
     }
 
-    private fun widget(name: String, now: LocalDateTime, wDp: Int, hDp: Int, region: RegionData? = odesa, group: String? = "2.1", dark: Boolean) {
-        Prefs(ctx).group = group
+    private fun widget(name: String, now: LocalDateTime, wDp: Int, hDp: Int, region: RegionData? = odesa, group: String? = "2.1", dark: Boolean, place: Place? = null) {
+        val p = place ?: Place(1, "", region?.id, group)
         val opts = Bundle().apply {
             putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, wDp)
             putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, hDp)
         }
-        val v = Widget.build(ctx, opts, now, region, SystemClock.elapsedRealtime()).apply(ctx, FrameLayout(ctx))
+        val v = Widget.build(ctx, p, opts, now, region, SystemClock.elapsedRealtime()).apply(ctx, FrameLayout(ctx))
         val d = ctx.resources.displayMetrics.density
         save(v, (wDp * d).toInt(), (hDp * d).toInt(), name, if (dark) 0xFF20242E.toInt() else 0xFFB9C7DE.toInt())
     }
@@ -72,6 +75,20 @@ class RenderTest {
         widget("${prefix}_7_emergency", LocalDateTime.of(2026, 11, 4, 12, 0), 360, 260,
             RegionData("odeska-oblast", "", "", true, odesa.groups), "2.1", dark)
     }
+
+    /** Two addresses: the header names the one each widget shows. */
+    private fun multi(prefix: String, dark: Boolean) {
+        val prefs = Prefs(ctx)
+        val work = prefs.addPlace("Робота").copy(region = "kyiv", group = "3.1")
+        prefs.updatePlace(work)
+        prefs.updatePlace(prefs.places.first().copy(name = "Дім"))
+        val now = LocalDateTime.of(2026, 11, 4, 15, 12)
+        widget("${prefix}_8_multi_home", now, 360, 260, odesa, "2.1", dark, prefs.places.first())
+        widget("${prefix}_9_multi_work", now, 360, 260, feed.region("kyiv"), "3.1", dark, work)
+    }
+
+    @Test @Config(qualifiers = "uk-w411dp-h891dp-notnight-xxhdpi") fun multiLightUk() = multi("light_uk", false)
+    @Test @Config(qualifiers = "uk-w411dp-h891dp-night-xxhdpi") fun multiDarkUk() = multi("dark_uk", true)
 
     @Test @Config(qualifiers = "uk-w411dp-h891dp-notnight-xxhdpi") fun widgetLightUk() = states("light_uk", false)
     @Test @Config(qualifiers = "uk-w411dp-h891dp-night-xxhdpi") fun widgetDarkUk() = states("dark_uk", true)
@@ -96,4 +113,36 @@ class RenderTest {
     @Test @Config(qualifiers = "uk-w411dp-h891dp-notnight-xxhdpi") fun appLightUk() = app("app_light_uk")
     @Test @Config(qualifiers = "uk-w411dp-h891dp-night-xxhdpi") fun appDarkUk() = app("app_dark_uk")
     @Test @Config(qualifiers = "en-w411dp-h891dp-night-xxhdpi") fun appDarkEn() = app("app_dark_en")
+
+    @Test @Config(qualifiers = "uk-w411dp-h891dp-notnight-xxhdpi") fun appMultiUk() {
+        val prefs = Prefs(ctx)
+        prefs.updatePlace(prefs.places.first().copy(name = "Дім"))
+        val work = prefs.addPlace("Робота").copy(region = "kyiv", group = "3.1")
+        prefs.updatePlace(work)
+        prefs.selectedPlace = work.id
+        app("app_multi_uk")
+    }
+
+    @Test @Config(qualifiers = "uk-w411dp-h891dp-notnight-xxhdpi") fun appUpdateUk() {
+        Prefs(ctx).availableUpdate = Release(99, "1.2.0", "svitlograf-1.2.0.apk", 1, "00",
+            mapOf("uk" to "Кілька адрес і віджетів, оновлення в застосунку.", "en" to "Several addresses.")).toJson()
+        app("app_update_uk")
+    }
+
+    @Test @Config(qualifiers = "uk-w411dp-h891dp-notnight-xxhdpi") fun configScreenUk() {
+        val prefs = Prefs(ctx)
+        prefs.updatePlace(prefs.places.first().copy(name = "Дім"))
+        prefs.updatePlace(prefs.addPlace("Робота").copy(region = "kyiv", group = "3.1"))
+        prefs.addPlace("Мама")
+        val intent = android.content.Intent(ctx, WidgetConfigActivity::class.java).putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, 7)
+        val act = Robolectric.buildActivity(WidgetConfigActivity::class.java, intent).setup().get()
+        val root = act.window.decorView
+        val w = ctx.resources.displayMetrics.widthPixels
+        val h = ctx.resources.displayMetrics.heightPixels
+        root.measure(View.MeasureSpec.makeMeasureSpec(w, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(h, View.MeasureSpec.EXACTLY))
+        root.layout(0, 0, w, h)
+        val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        root.draw(Canvas(bmp))
+        File(out, "config_uk.png").outputStream().use { bmp.compress(Bitmap.CompressFormat.PNG, 100, it) }
+    }
 }
