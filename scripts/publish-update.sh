@@ -20,14 +20,22 @@ keep=3
 expected_cert=70e55de55644bdea02fe57a7841bdbdabfbce1dac05b3535c9dcf895e4470d32
 
 root=$(cd "$(dirname "$0")/.." && pwd)
-sdk=${ANDROID_HOME:-${ANDROID_SDK_ROOT:-$HOME/Library/Android/sdk}}
+sdk=${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}
+if [[ -z $sdk ]]; then
+  for d in "$HOME/Library/Android/sdk" /d/Android/Sdk "$HOME/AppData/Local/Android/Sdk" "$HOME/Android/Sdk"; do
+    [[ -d $d/build-tools ]] && { sdk=$d; break; }
+  done
+fi
+[[ -d $sdk/build-tools ]] || { echo "Android SDK not found; set ANDROID_HOME" >&2; exit 1; }
 bt=$(ls -d "$sdk"/build-tools/*/ | sort -V | tail -1)
-badging=$("$bt/aapt2" dump badging "$apk")
+apksigner=$bt/apksigner; [[ -f $apksigner ]] || apksigner=$bt/apksigner.bat
+py=$(command -v python3 || command -v python) || { echo "Python not found" >&2; exit 1; }
+badging=$("$bt/aapt2" dump badging "$apk" | tr -d '\r')
 code=$(sed -n "s/^package:.*versionCode='\([0-9]*\)'.*/\1/p" <<<"$badging")
 name=$(sed -n "s/^package:.*versionName='\([^']*\)'.*/\1/p" <<<"$badging")
 [[ -n $code && -n $name ]] || { echo "Cannot read the version from $apk" >&2; exit 1; }
 grep -q "REQUEST_INSTALL_PACKAGES" <<<"$badging" || { echo "Not a GitHub build (no self-update permission): $apk" >&2; exit 1; }
-cert=$("$bt/apksigner" verify --print-certs "$apk" | sed -n 's/.*SHA-256 digest: //p' | head -1)
+cert=$("$apksigner" verify --print-certs "$apk" | tr -d '\r' | sed -n 's/.*SHA-256 digest: //p' | head -1)
 [[ $cert == "$expected_cert" ]] || { echo "Signed with the wrong key ($cert)" >&2; exit 1; }
 
 grep -q CONTACT_EMAIL "$root/web/privacy.html" && { echo "Put your contact e-mail into web/privacy.html first" >&2; exit 1; }
@@ -37,8 +45,9 @@ bytes=$(wc -c <"$apk" | tr -d ' ')
 if command -v sha256sum >/dev/null; then sha=$(sha256sum "$apk" | cut -d' ' -f1); else sha=$(shasum -a 256 "$apk" | cut -d' ' -f1); fi
 
 manifest=$(mktemp)
-python3 - "$code" "$name" "$file" "$bytes" "$sha" "$notes" >"$manifest" <<'PY'
-import datetime, json, sys
+"$py" - "$code" "$name" "$file" "$bytes" "$sha" "$notes" >"$manifest" <<'PY'
+import datetime, io, json, sys
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", newline="\n")
 code, name, file, size, sha, notes = sys.argv[1:]
 n = json.load(open(notes, encoding="utf-8"))
 assert isinstance(n, dict) and "en" in n, "notes.json needs at least an \"en\" entry"
