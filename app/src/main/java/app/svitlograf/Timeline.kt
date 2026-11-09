@@ -19,16 +19,25 @@ class TimelineLayers(val track: Bitmap, val on: Bitmap, val off: Bitmap, val tex
 object Timeline {
     class Labels(val today: String, val tomorrow: String, val noSchedule: String)
 
+    const val BAR_DP = 14f
+    const val GAP_DP = 8f
+    const val PAD_DP = 4f
+    const val SCALE_DP = 15f
+
+    /** Bitmap height in dp; WidgetFit uses it to plan the layout. */
+    fun heightDp(rows: Int, showScale: Boolean) =
+        2 * PAD_DP + rows * BAR_DP + (rows - 1) * GAP_DP + if (showScale) SCALE_DP else 0f
+
     fun render(
         widthPx: Int, density: Float, today: DaySlots?, tomorrow: DaySlots?, now: LocalDateTime,
-        showTomorrow: Boolean, compact: Boolean, labels: Labels,
+        showTomorrow: Boolean, showLabels: Boolean, showScale: Boolean, labels: Labels,
     ): TimelineLayers {
         val d = density
-        val labelW = if (compact) 0f else 72 * d
-        val barH = 16 * d
-        val rowGap = 10 * d
-        val scaleH = if (compact) 0f else 16 * d
-        val pad = 5 * d
+        val labelW = if (showLabels) 72 * d else 0f
+        val barH = BAR_DP * d
+        val rowGap = GAP_DP * d
+        val scaleH = if (showScale) SCALE_DP * d else 0f
+        val pad = PAD_DP * d
         val rows = if (showTomorrow) 2 else 1
         val w = widthPx.coerceAtLeast(16)
         val h = (pad + rows * barH + (rows - 1) * rowGap + pad + scaleH).toInt()
@@ -52,7 +61,7 @@ object Timeline {
         fun x(slot: Int) = left + span * slot / SLOTS
 
         fun row(top: Float, day: DaySlots?, name: String, isToday: Boolean) {
-            if (!compact) cText.drawText(name, 0f, top + barH / 2 + text.textSize * 0.35f, text)
+            if (showLabels) cText.drawText(name, 0f, top + barH / 2 + text.textSize * 0.35f, text)
             if (day == null) {
                 cTrack.drawRoundRect(RectF(left, top, right, top + barH), r, r, solid)
                 val t = Paint(text).apply { textSize = 11 * d; textAlign = Paint.Align.CENTER; alpha = 200 }
@@ -89,7 +98,7 @@ object Timeline {
             top += barH + rowGap
             row(top, tomorrow, labels.tomorrow, false)
         }
-        if (!compact) {
+        if (showScale) {
             val scale = Paint(text).apply { textSize = 10.5f * d; alpha = 170; typeface = Typeface.DEFAULT }
             val baseY = top + barH + pad + scale.textSize
             for (hh in listOf(0, 6, 12, 18, 24)) {

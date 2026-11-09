@@ -88,9 +88,15 @@ class RenderTest {
     }
 
     /** Heights between the old fixed tiers: the interval line must show. */
-    @Test @Config(qualifiers = "en-w411dp-h891dp-night-xxhdpi") fun heightsDarkEn() {
-        val now = LocalDateTime.of(2026, 11, 4, 17, 7)
-        for (h in listOf(195, 215, 240, 260)) widget("heights_${h}", now, 330, h, odesa, "1.2", dark = true)
+    @Test @Config(qualifiers = "uk-w411dp-h891dp-night-xxhdpi") fun heightsDarkUk() {
+        val now = LocalDateTime.of(2026, 11, 4, 17, 58)
+        val withTomorrow = RegionData(odesa.id, odesa.nameUk, odesa.nameEn, false, odesa.groups.mapValues { (_, days) ->
+            days + days.map { DaySlots(it.date.plusDays(1), it.off.reversedArray()) }
+        })
+        for (h in listOf(190, 206, 220, 240)) {
+            widget("heights_${h}", now, 360, h, odesa, "2.1", dark = true)
+            widget("heights_${h}_tomorrow", now, 360, h, withTomorrow, "2.1", dark = true)
+        }
     }
 
     @Test @Config(qualifiers = "uk-w411dp-h891dp-notnight-xxhdpi") fun multiLightUk() = multi("light_uk", false)

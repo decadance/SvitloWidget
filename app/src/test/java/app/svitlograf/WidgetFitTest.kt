@@ -74,13 +74,11 @@ class WidgetFitTest {
         sweep(withTomorrow(odesa), "today+tomorrow")
     }
 
-    @Test fun intervalsBeatTheTomorrowBar() {
-        // A 2-row launcher cell on most phones is ~200-240dp: the interval line has to be there.
-        for (h in listOf(195, 215, 230, 240)) assertEquals("h=$h", 1, measure(odesa, h).second)
-        assertEquals(WidgetFit.Fit(1, true, 1), WidgetFit.choose(195, 1f, 1, false))
-        assertEquals(WidgetFit.Fit(1, false, 1), WidgetFit.choose(215, 1f, 1, false))
-        assertEquals(WidgetFit.Fit(2, false, 1), WidgetFit.choose(240, 1f, 2, false))
-        assertEquals(WidgetFit.Fit(2, false, 2), WidgetFit.choose(300, 1f, 2, false))
-        assertEquals(WidgetFit.Fit(1, true, 0), WidgetFit.choose(140, 1f, 2, false))
+    @Test fun bothBarsAndTodayLineInTwoCells() {
+        // A 2-row launcher cell on a Pixel is ~205dp: both bars and the interval line have to be there.
+        assertEquals(WidgetFit.Fit(2, true, false, 1), WidgetFit.choose(205, 1f, 1, false))
+        assertEquals(WidgetFit.Fit(2, true, true, 2), WidgetFit.choose(300, 1f, 2, false))
+        assertEquals(WidgetFit.Fit(1, false, false, 0), WidgetFit.choose(140, 1f, 2, false))
+        for (h in listOf(205, 215, 230)) assertEquals("h=$h", 1, measure(odesa, h).second)
     }
 }

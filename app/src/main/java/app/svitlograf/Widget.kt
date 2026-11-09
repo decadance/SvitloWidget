@@ -167,7 +167,7 @@ class Widget : AppWidgetProvider() {
 
             if (configured) {
                 val labels = Timeline.Labels(ctx.getString(R.string.today), ctx.getString(R.string.tomorrow), ctx.getString(R.string.no_schedule_yet))
-                val l = Timeline.render(((widthDp - 32) * density).toInt(), density, snap.today, snap.tomorrow, now, fit.rows == 2, fit.compact, labels)
+                val l = Timeline.render(((widthDp - 32) * density).toInt(), density, snap.today, snap.tomorrow, now, fit.rows == 2, fit.labels, fit.scale, labels)
                 v.setImageViewBitmap(R.id.tl_track, l.track)
                 v.setImageViewBitmap(R.id.tl_on, l.on)
                 v.setImageViewBitmap(R.id.tl_off, l.off)
@@ -199,38 +199,37 @@ class Widget : AppWidgetProvider() {
 
 /**
  * Picks what fits into the widget height. Launchers only offer whole grid cells, so instead of fixed
- * tiers the parts are added by priority: the "Today: 09:30–13:30" line beats the tomorrow bar.
+ * tiers the parts are dropped one by one: tomorrow's interval text, then the hour scale, the tomorrow
+ * bar, the bar labels and finally today's interval text.
  */
 object WidgetFit {
-    data class Fit(val rows: Int, val compact: Boolean, val lines: Int)
+    data class Fit(val rows: Int, val labels: Boolean, val scale: Boolean, val lines: Int)
 
     // Heights in dp, measured from layout/widget.xml with real fonts (see WidgetFitTest); text parts grow with font size.
     private const val PADDING = 32f
-    private const val TIMELINE_MARGIN = 14f
-    private const val ONE_ROW_COMPACT = 26f
-    private const val ONE_ROW = 42f
-    private const val TWO_ROWS = 68f
+    private const val PILL_MARGIN = 10f
+    private const val TIMELINE_MARGIN = 10f
+    private const val LINES_MARGIN = 6f
 
     fun choose(heightDp: Int, fontScale: Float, lineCount: Int, alert: Boolean): Fit {
         val fs = fontScale.coerceAtLeast(0.85f)
         val header = 14f + 33f * fs
-        val pill = 12f + 12f + 21f * fs
+        val pill = PILL_MARGIN + 12f + 21f * fs
         val line = 15.7f * fs + 2f
         val alertH = if (alert) 8f + 2 * line else 0f
         val room = heightDp - PADDING - header - pill - alertH - TIMELINE_MARGIN
-        fun linesH(n: Int) = if (n == 0) 0f else 8f + n * line
+        fun linesH(n: Int) = if (n == 0) 0f else LINES_MARGIN + n * line
 
         val today = minOf(lineCount, 1)
         val candidates = listOf(
-            Fit(2, false, lineCount),
-            Fit(2, false, today),
-            Fit(1, false, today),
-            Fit(1, true, today),
-            Fit(1, true, 0),
+            Fit(2, true, true, lineCount),
+            Fit(2, true, false, lineCount),
+            Fit(2, true, true, today),
+            Fit(2, true, false, today),
+            Fit(1, true, true, today),
+            Fit(1, false, false, today),
+            Fit(1, false, false, 0),
         )
-        return candidates.firstOrNull { c ->
-            val tl = when { c.rows == 2 -> TWO_ROWS; c.compact -> ONE_ROW_COMPACT; else -> ONE_ROW }
-            tl + linesH(c.lines) <= room
-        } ?: candidates.last()
+        return candidates.firstOrNull { Timeline.heightDp(it.rows, it.scale) + linesH(it.lines) <= room } ?: candidates.last()
     }
 }
