@@ -87,6 +87,12 @@ class RenderTest {
         widget("${prefix}_9_multi_work", now, 360, 260, feed.region("kyiv"), "3.1", dark, work)
     }
 
+    /** Heights between the old fixed tiers: the interval line must show. */
+    @Test @Config(qualifiers = "en-w411dp-h891dp-night-xxhdpi") fun heightsDarkEn() {
+        val now = LocalDateTime.of(2026, 11, 4, 17, 7)
+        for (h in listOf(195, 215, 240, 260)) widget("heights_${h}", now, 330, h, odesa, "1.2", dark = true)
+    }
+
     @Test @Config(qualifiers = "uk-w411dp-h891dp-notnight-xxhdpi") fun multiLightUk() = multi("light_uk", false)
     @Test @Config(qualifiers = "uk-w411dp-h891dp-night-xxhdpi") fun multiDarkUk() = multi("dark_uk", true)
 

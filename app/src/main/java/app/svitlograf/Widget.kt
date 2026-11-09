@@ -154,18 +154,20 @@ class Widget : AppWidgetProvider() {
             }
             v.setViewVisibility(R.id.alert, if (snap.emergency && configured) View.VISIBLE else View.GONE)
 
-            // Size tiers: compact = today only; medium = + tomorrow; tall = + interval text.
             val minW = options?.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0) ?: 0
             val maxH = options?.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, 0) ?: 0
             val widthDp = if (minW > 0) minW else 340
             val heightDp = if (maxH > 0) maxH else 260
-            val compact = heightDp < 180
-            val showTomorrow = heightDp >= 208
-            val tall = heightDp >= 250
+
+            val lines = buildList {
+                snap.today?.let { add(ctx.getString(R.string.intervals_today, Notifier.describe(ctx, it))) }
+                snap.tomorrow?.let { add(ctx.getString(R.string.intervals_tomorrow, Notifier.describe(ctx, it))) }
+            }
+            val fit = WidgetFit.choose(heightDp, ctx.resources.configuration.fontScale, lines.size, snap.emergency && configured)
 
             if (configured) {
                 val labels = Timeline.Labels(ctx.getString(R.string.today), ctx.getString(R.string.tomorrow), ctx.getString(R.string.no_schedule_yet))
-                val l = Timeline.render(((widthDp - 32) * density).toInt(), density, snap.today, snap.tomorrow, now, showTomorrow, compact, labels)
+                val l = Timeline.render(((widthDp - 32) * density).toInt(), density, snap.today, snap.tomorrow, now, fit.rows == 2, fit.compact, labels)
                 v.setImageViewBitmap(R.id.tl_track, l.track)
                 v.setImageViewBitmap(R.id.tl_on, l.on)
                 v.setImageViewBitmap(R.id.tl_off, l.off)
@@ -176,12 +178,8 @@ class Widget : AppWidgetProvider() {
                 v.setViewVisibility(R.id.timeline, View.GONE)
             }
 
-            val lines = buildList {
-                snap.today?.let { add(ctx.getString(R.string.intervals_today, Notifier.describe(ctx, it))) }
-                snap.tomorrow?.let { add(ctx.getString(R.string.intervals_tomorrow, Notifier.describe(ctx, it))) }
-            }
-            v.setTextViewText(R.id.intervals, lines.joinToString("\n"))
-            v.setViewVisibility(R.id.intervals, if (lines.isEmpty() || !tall || !configured) View.GONE else View.VISIBLE)
+            v.setTextViewText(R.id.intervals, lines.take(fit.lines).joinToString("\n"))
+            v.setViewVisibility(R.id.intervals, if (fit.lines == 0 || !configured) View.GONE else View.VISIBLE)
 
             val open = Intent(ctx, MainActivity::class.java)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
@@ -196,5 +194,43 @@ class Widget : AppWidgetProvider() {
             )
             return v
         }
+    }
+}
+
+/**
+ * Picks what fits into the widget height. Launchers only offer whole grid cells, so instead of fixed
+ * tiers the parts are added by priority: the "Today: 09:30–13:30" line beats the tomorrow bar.
+ */
+object WidgetFit {
+    data class Fit(val rows: Int, val compact: Boolean, val lines: Int)
+
+    // Heights in dp, measured from layout/widget.xml with real fonts (see WidgetFitTest); text parts grow with font size.
+    private const val PADDING = 32f
+    private const val TIMELINE_MARGIN = 14f
+    private const val ONE_ROW_COMPACT = 26f
+    private const val ONE_ROW = 42f
+    private const val TWO_ROWS = 68f
+
+    fun choose(heightDp: Int, fontScale: Float, lineCount: Int, alert: Boolean): Fit {
+        val fs = fontScale.coerceAtLeast(0.85f)
+        val header = 14f + 33f * fs
+        val pill = 12f + 12f + 21f * fs
+        val line = 15.7f * fs + 2f
+        val alertH = if (alert) 8f + 2 * line else 0f
+        val room = heightDp - PADDING - header - pill - alertH - TIMELINE_MARGIN
+        fun linesH(n: Int) = if (n == 0) 0f else 8f + n * line
+
+        val today = minOf(lineCount, 1)
+        val candidates = listOf(
+            Fit(2, false, lineCount),
+            Fit(2, false, today),
+            Fit(1, false, today),
+            Fit(1, true, today),
+            Fit(1, true, 0),
+        )
+        return candidates.firstOrNull { c ->
+            val tl = when { c.rows == 2 -> TWO_ROWS; c.compact -> ONE_ROW_COMPACT; else -> ONE_ROW }
+            tl + linesH(c.lines) <= room
+        } ?: candidates.last()
     }
 }
