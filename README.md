@@ -119,3 +119,7 @@ The script refuses Play builds and APKs signed with any key other than the relea
 Store listing text, graphics and Play Console answers: [`docs/play/listing.md`](docs/play/listing.md).
 
 Min Android 8.0 (API 26), target Android 17 (API 37). Package: `app.svitlograf`.
+
+## License
+
+[MIT](LICENSE). Schedule data belongs to its sources and is not covered by this license.
