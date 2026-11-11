@@ -15,6 +15,7 @@
     <string name="no_more_today">Сьогодні відключень більше немає</string>
     <string name="until_eod">До кінця доби · графіка на завтра ще немає</string>
     <string name="no_change">Без змін до кінця графіка</string>
+    <string name="not_published">Графік на сьогодні не опубліковано</string>
     <string name="tap_refresh">Немає даних на сьогодні — натисніть ↻</string>
     <string name="setup_hint">Натисніть, щоб обрати регіон і чергу</string>
     <string name="emergency_banner">Екстрені відключення — графік може не діяти</string>
@@ -52,7 +53,6 @@
     <string name="group">Черга</string>
     <string name="group_hint">Свою чергу можна дізнатися за адресою на сайті обленерго</string>
     <string name="no_data_yet">Завантажуємо регіони…</string>
-    <string name="section_notifications">Сповіщення</string>
     <string name="notify_changes">Новий або змінений графік</string>
     <string name="notify_changes_sub">Коли вийде графік на завтра або зміниться сьогоднішній</string>
     <string name="notify_before">Нагадувати перед відключенням</string>
@@ -78,7 +78,6 @@
     <string name="group_lower">черга %1$s</string>
     <string name="place_group_fmt">%1$s · черга %2$s</string>
     <string name="place_default">Адреса %1$d</string>
-    <string name="section_addresses">Адреси</string>
     <string name="add_place">Додати адресу</string>
     <string name="place_name">Назва</string>
     <string name="place_name_hint">Дім, Робота, Мама…</string>

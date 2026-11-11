@@ -16,7 +16,6 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
-import java.time.Duration
 import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 
@@ -112,7 +111,7 @@ object Alarms {
         // Only remind if the outage is still in the current schedule.
         val iv = Store.load(ctx)?.region(s.region)?.let { r -> Logic.intervals(r.days(s.group)) }
             ?.firstOrNull { it.start.atZone(KYIV).toInstant().toEpochMilli() == startMs } ?: return
-        val mins = Duration.between(LocalDateTime.now(KYIV), iv.start).toMinutes().coerceAtLeast(0) + 1
+        val mins = (kyivMillisBetween(LocalDateTime.now(KYIV), iv.start) / 60_000).coerceAtLeast(0) + 1
         Notifier.reminder(ctx, s, iv, mins.coerceAtMost(prefs.minutesBefore.toLong()), places.size > 1)
         prefs.setLastReminded(key, startMs)
     }

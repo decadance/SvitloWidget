@@ -10,7 +10,6 @@ import android.os.Bundle
 import android.os.SystemClock
 import android.view.View
 import android.widget.RemoteViews
-import java.time.Duration
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -46,8 +45,10 @@ class Widget : AppWidgetProvider() {
             ACTION_PINNED -> {
                 val widgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID)
                 val placeId = intent.getIntExtra(EXTRA_PLACE, -1)
-                if (widgetId != AppWidgetManager.INVALID_APPWIDGET_ID && placeId > 0) {
-                    Prefs(ctx).bindWidget(widgetId, placeId)
+                val prefs = Prefs(ctx)
+                // The launcher may also show the config screen; whatever was picked there wins.
+                if (widgetId != AppWidgetManager.INVALID_APPWIDGET_ID && placeId > 0 && !prefs.isBound(widgetId)) {
+                    prefs.bindWidget(widgetId, placeId)
                     update(ctx, AppWidgetManager.getInstance(ctx), widgetId)
                 }
             }
@@ -96,9 +97,10 @@ class Widget : AppWidgetProvider() {
                 else -> ctx.getString(R.string.app_name)
             }
             val fetched = prefs.fetchedAt
+            val stale = System.currentTimeMillis() - fetched > 60 * 60_000
+            val fresh = region != null && !stale
             val subtitle = if (fetched == 0L) title else {
                 val t = LocalDateTime.ofInstant(Instant.ofEpochMilli(fetched), KYIV).format(hm)
-                val stale = System.currentTimeMillis() - fetched > 60 * 60_000
                 ctx.getString(if (stale) R.string.updated_stale_fmt else R.string.updated_fmt, title, t)
             }
             v.setTextViewText(R.id.subtitle, subtitle)
@@ -134,7 +136,7 @@ class Widget : AppWidgetProvider() {
                     else -> R.string.next_on_tomorrow
                 }
                 v.setTextViewText(R.id.next_label, ctx.getString(res, time))
-                v.setChronometer(R.id.countdown, elapsedNow + Duration.between(now, next).toMillis(), null, true)
+                v.setChronometer(R.id.countdown, elapsedNow + kyivMillisBetween(now, next), null, true)
                 v.setChronometerCountDown(R.id.countdown, true)
                 v.setViewVisibility(R.id.countdown, View.VISIBLE)
             } else {
@@ -144,6 +146,7 @@ class Widget : AppWidgetProvider() {
                     ctx.getString(
                         when {
                             !configured -> R.string.setup_hint
+                            snap.power == Power.UNKNOWN && fresh -> R.string.not_published
                             snap.power == Power.UNKNOWN -> R.string.tap_refresh
                             snap.tomorrow == null && snap.power == Power.ON -> R.string.no_more_today
                             snap.tomorrow == null -> R.string.until_eod

@@ -408,7 +408,7 @@ class MainActivity : AppCompatActivity() {
         val callback = android.app.PendingIntent.getBroadcast(
             this, place.id,
             Intent(this, Widget::class.java).setAction(Widget.ACTION_PINNED).putExtra(Widget.EXTRA_PLACE, place.id),
-            android.app.PendingIntent.FLAG_MUTABLE or android.app.PendingIntent.FLAG_UPDATE_CURRENT,
+            (if (Build.VERSION.SDK_INT >= 31) android.app.PendingIntent.FLAG_MUTABLE else 0) or android.app.PendingIntent.FLAG_UPDATE_CURRENT,
         )
         mgr.requestPinAppWidget(ComponentName(this, Widget::class.java), null, callback)
     }

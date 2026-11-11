@@ -1,0 +1,4 @@
+{
+  "uk": "Виправлення: хибне сповіщення «Новий графік» після повернення до черги, точний відлік у ніч переведення годинника, зрозуміліший напис, коли графік на сьогодні не опубліковано.",
+  "en": "Fixes: a false \"New schedule\" alert after switching back to a group, countdown on the clock-change night, clearer text when no schedule is published for today."
+}

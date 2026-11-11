@@ -15,11 +15,21 @@ const val SOURCE_URL =
 class Prefs(ctx: Context) {
     private val sp: SharedPreferences = ctx.getSharedPreferences(NAME, Context.MODE_PRIVATE)
 
-    init { migrate() }
+    init {
+        migrate()
+        places // makes sure the first address exists before anything asks for a new id
+    }
 
     // --- places ---
 
-    val places: List<Place> get() = Place.listFromJson(sp.getString("places", null))
+    val places: List<Place>
+        get() = Place.listFromJson(sp.getString("places", null)).ifEmpty {
+            // Unreadable or empty list: start over with one empty address rather than crash.
+            val next = sp.getInt("next_place_id", 1)
+            listOf(Place(next, "", null, null)).also {
+                sp.edit().putString("places", Place.listToJson(it)).putInt("next_place_id", next + 1).apply()
+            }
+        }
 
     fun place(id: Int): Place? = places.firstOrNull { it.id == id }
 
@@ -118,7 +128,7 @@ class Prefs(ctx: Context) {
 
     /** 1.0 kept a single region/group; turn it into the first place. Runs once. */
     private fun migrate() {
-        if (sp.contains("places")) return
+        if (sp.contains("places") || !sp.contains("region")) return
         val first = Place(
             id = 1,
             name = "",
@@ -130,7 +140,6 @@ class Prefs(ctx: Context) {
         val e = sp.edit()
             .putString("places", Place.listToJson(listOf(first)))
             .putInt("next_place_id", 2)
-            .putInt("selected_place", 1)
         if (first.region != null) e.putBoolean("emergency_${first.region}", sp.getBoolean("emergency_seen", false))
         if (first.scheduleKey != null) e.putLong("reminded_${first.scheduleKey}", sp.getLong("last_reminded", 0))
         listOf("region", "group", "notify_changes", "notify_before", "emergency_seen", "last_reminded").forEach { e.remove(it) }
@@ -230,8 +239,8 @@ object Store {
         val group = place.group ?: return
         val today = LocalDateTime.now(KYIV).toLocalDate()
         prefs.setEmergencySeen(region.id, region.emergency)
-        if (prefs.seen(region.id, group) == null) {
-            prefs.setSeen(region.id, group, region.days(group).filter { it.date >= today }.associate { it.date to it.signature })
-        }
+        // Always, not only on first use: a schedule picked again after a break would otherwise
+        // compare against days seen back then and announce today's schedule as new.
+        prefs.setSeen(region.id, group, region.days(group).filter { it.date >= today }.associate { it.date to it.signature })
     }
 }

@@ -31,6 +31,10 @@ class Feed(val regions: List<RegionData>) {
 
 class Interval(val start: LocalDateTime, val end: LocalDateTime)
 
+/** Real time between two Kyiv wall-clock moments, correct across the DST switch. */
+fun kyivMillisBetween(from: LocalDateTime, to: LocalDateTime): Long =
+    java.time.Duration.between(from.atZone(KYIV), to.atZone(KYIV)).toMillis()
+
 /** Natural order: 1.1, 1.2, 2.1 … 10.1 */
 object GroupOrder : Comparator<String> {
     override fun compare(a: String, b: String): Int {

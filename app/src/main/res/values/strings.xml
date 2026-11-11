@@ -15,6 +15,7 @@
     <string name="no_more_today">No more outages today</string>
     <string name="until_eod">Until midnight · tomorrow\'s schedule isn\'t out yet</string>
     <string name="no_change">No changes until the end of the schedule</string>
+    <string name="not_published">No schedule published for today</string>
     <string name="tap_refresh">No data for today — tap ↻</string>
     <string name="setup_hint">Tap to choose your region and group</string>
     <string name="emergency_banner">Emergency outages — the schedule may not apply</string>
@@ -52,7 +53,6 @@
     <string name="group">Group</string>
     <string name="group_hint">Find your group on your provider\'s website by address</string>
     <string name="no_data_yet">Loading regions…</string>
-    <string name="section_notifications">Notifications</string>
     <string name="notify_changes">New or changed schedule</string>
     <string name="notify_changes_sub">When tomorrow\'s schedule is published or today\'s changes</string>
     <string name="notify_before">Remind before an outage</string>
@@ -78,7 +78,6 @@
     <string name="group_lower">group %1$s</string>
     <string name="place_group_fmt">%1$s · group %2$s</string>
     <string name="place_default">Address %1$d</string>
-    <string name="section_addresses">Addresses</string>
     <string name="add_place">Add address</string>
     <string name="place_name">Name</string>
     <string name="place_name_hint">Home, Work, Mum\'s…</string>
