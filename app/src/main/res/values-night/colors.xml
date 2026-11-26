@@ -14,4 +14,5 @@
     <color name="power_off_container">#FF7E1E19</color>
     <color name="power_off_on_container">#FFFFDAD6</color>
     <color name="w_error">#FFFFB4AB</color>
+    <color name="w_row">#FF2B2930</color>
 </resources>

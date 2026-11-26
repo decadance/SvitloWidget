@@ -26,7 +26,8 @@ object Notifier {
     private const val ID_EMERGENCY = 300
     private const val ID_UPDATE = 400
 
-    fun createChannels(ctx: Context) {
+    fun createChannels(context: Context) {
+        val ctx = context.localized()
         val nm = ctx.getSystemService(NotificationManager::class.java)
         nm.createNotificationChannel(
             NotificationChannel(CH_CHANGES, ctx.getString(R.string.ch_changes), NotificationManager.IMPORTANCE_DEFAULT)
@@ -45,7 +46,8 @@ object Notifier {
         Build.VERSION.SDK_INT < 33 ||
             ctx.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
 
-    private fun post(ctx: Context, channel: String, id: Int, title: String, text: String, placeId: Int? = null) {
+    private fun post(context: Context, channel: String, id: Int, title: String, text: String, placeId: Int? = null) {
+        val ctx = context.localized()
         if (!canPost(ctx)) return
         createChannels(ctx)
         val intent = Intent(ctx, MainActivity::class.java)
@@ -66,7 +68,8 @@ object Notifier {
         ctx.getSystemService(NotificationManager::class.java).notify(id, n)
     }
 
-    fun dayLabel(ctx: Context, date: LocalDate, today: LocalDate = LocalDateTime.now(KYIV).toLocalDate()): String {
+    fun dayLabel(context: Context, date: LocalDate, today: LocalDate = LocalDateTime.now(KYIV).toLocalDate()): String {
+        val ctx = context.localized()
         val fmt = DateTimeFormatter.ofPattern("d MMMM", ctx.locale())
         return when (date) {
             today -> ctx.getString(R.string.day_today)
@@ -76,14 +79,16 @@ object Notifier {
     }
 
     fun describe(ctx: Context, day: DaySlots?): String =
-        day?.let { Logic.formatDay(it) } ?: ctx.getString(R.string.no_outages)
+        day?.let { Logic.formatDay(it) } ?: ctx.localized().getString(R.string.no_outages)
 
     /** "Group 2.1", or "Home, Work · group 2.1" when the user follows several addresses. */
-    fun label(ctx: Context, s: Schedules.Followed, multi: Boolean): String =
+    fun label(context: Context, s: Schedules.Followed, multi: Boolean): String = context.localized().let { ctx ->
         if (!multi) ctx.getString(R.string.group_fmt, s.group)
         else s.places.joinToString(", ") { it.displayName(ctx) } + " · " + ctx.getString(R.string.group_lower, s.group)
+    }
 
-    fun scheduleChanged(ctx: Context, s: Schedules.Followed, region: RegionData, changes: List<Change>, multi: Boolean) {
+    fun scheduleChanged(context: Context, s: Schedules.Followed, region: RegionData, changes: List<Change>, multi: Boolean) {
+        val ctx = context.localized()
         val days = region.days(s.group).associateBy { it.date }
         val lines = changes.map { c ->
             when (c) {
@@ -97,14 +102,16 @@ object Notifier {
         post(ctx, CH_CHANGES, ID_CHANGES + first, title, lines.joinToString("\n"), first)
     }
 
-    fun emergency(ctx: Context, region: RegionData, on: Boolean) {
+    fun emergency(context: Context, region: RegionData, on: Boolean) {
+        val ctx = context.localized()
         val name = region.name(ctx.lang())
         val id = ID_EMERGENCY + Math.floorMod(region.id.hashCode(), 99)
         if (on) post(ctx, CH_CHANGES, id, ctx.getString(R.string.notif_emergency_on), ctx.getString(R.string.notif_emergency_on_body, name))
         else post(ctx, CH_CHANGES, id, ctx.getString(R.string.notif_emergency_off), ctx.getString(R.string.notif_emergency_off_body, name))
     }
 
-    fun reminder(ctx: Context, s: Schedules.Followed, iv: Interval, minutes: Long, multi: Boolean) {
+    fun reminder(context: Context, s: Schedules.Followed, iv: Interval, minutes: Long, multi: Boolean) {
+        val ctx = context.localized()
         val day = iv.start.toLocalDate()
         val first = s.places.minOf { it.id }
         val title = if (minutes <= 1) ctx.getString(R.string.remind_now) else ctx.getString(R.string.remind_title, minutes)
@@ -112,6 +119,7 @@ object Notifier {
         post(ctx, CH_REMIND, ID_REMIND + first, title, body, first)
     }
 
-    fun updateAvailable(ctx: Context, versionName: String) =
+    fun updateAvailable(context: Context, versionName: String) = context.localized().let { ctx ->
         post(ctx, CH_UPDATES, ID_UPDATE, ctx.getString(R.string.notif_update_title, versionName), ctx.getString(R.string.notif_update_body))
+    }
 }

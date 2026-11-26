@@ -102,4 +102,16 @@
     <string name="up_to_date">У вас остання версія</string>
     <string name="footer_version">Версія %1$s</string>
     <string name="privacy_policy">Політика конфіденційності</string>
+    <string name="upcoming_title">Наступні відключення</string>
+    <string name="now_label">Зараз</string>
+    <string name="dur_h">%1$d год</string>
+    <string name="dur_hm">%1$d год %2$d хв</string>
+    <string name="dur_m">%1$d хв</string>
+    <string name="row_no_more">більше без відключень</string>
+    <string name="next_until">до %1$s ·\u0020</string>
+    <string name="next_until_tomorrow">до завтра %1$s ·\u0020</string>
+    <string name="next_off_at">Вимкнуть о %1$s</string>
+    <string name="next_on_at">Увімкнуть о %1$s</string>
+    <string name="next_off_at_tomorrow">Вимкнуть завтра о %1$s</string>
+    <string name="next_on_at_tomorrow">Увімкнуть завтра о %1$s</string>
 </resources>

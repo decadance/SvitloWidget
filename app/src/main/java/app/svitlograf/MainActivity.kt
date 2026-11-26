@@ -23,7 +23,6 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.os.LocaleListCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
@@ -116,9 +115,7 @@ class MainActivity : AppCompatActivity() {
             if (!checked) return@addOnButtonCheckedListener
             val tag = langs[id - 100].first
             if (tag == current) return@addOnButtonCheckedListener
-            AppCompatDelegate.setApplicationLocales(
-                if (tag.isEmpty()) LocaleListCompat.getEmptyLocaleList() else LocaleListCompat.forLanguageTags(tag),
-            )
+            AppLanguage.set(this, tag)
         }
 
         findViewById<MaterialButton>(R.id.btn_refresh).setOnClickListener { Sync.now(this) }

@@ -25,16 +25,16 @@ object Timeline {
     const val SCALE_DP = 15f
 
     /** Bitmap height in dp; WidgetFit uses it to plan the layout. */
-    fun heightDp(rows: Int, showScale: Boolean) =
-        2 * PAD_DP + rows * BAR_DP + (rows - 1) * GAP_DP + if (showScale) SCALE_DP else 0f
+    fun heightDp(rows: Int, showScale: Boolean, barDp: Float = BAR_DP) =
+        2 * PAD_DP + rows * barDp + (rows - 1) * GAP_DP + if (showScale) SCALE_DP else 0f
 
     fun render(
         widthPx: Int, density: Float, today: DaySlots?, tomorrow: DaySlots?, now: LocalDateTime,
         showTomorrow: Boolean, showLabels: Boolean, showScale: Boolean, labels: Labels,
+        barDp: Float = BAR_DP,
     ): TimelineLayers {
         val d = density
-        val labelW = if (showLabels) 72 * d else 0f
-        val barH = BAR_DP * d
+        val barH = barDp * d
         val rowGap = GAP_DP * d
         val scaleH = if (showScale) SCALE_DP * d else 0f
         val pad = PAD_DP * d
@@ -51,6 +51,10 @@ object Timeline {
         val text = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             textSize = 12.5f * d; typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
         }
+        // The label column is as wide as the longest label, so narrow widgets keep room for the bars.
+        val labelW = if (showLabels) {
+            maxOf(text.measureText(labels.today), if (showTomorrow) text.measureText(labels.tomorrow) else 0f) + 10 * d
+        } else 0f
         val left = labelW
         val right = w - 1 * d
         val span = right - left
